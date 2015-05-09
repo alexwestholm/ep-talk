@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>An Introduction to the Haskell Type System through the lens of the Expression Problem</title>
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/black.css" id="theme">
+
+		<!-- Code syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+      <div class="slides">
+
+        <section>
+          <h1>Hi!</h1>
+          <h4>I'm Alex Westholm</h4>
+          <h4>CTO @ Third Reef Partners</h4>
+          <br>
+          <h2>Welcome to...</h2>
+        </section>
+
+        <section class="intro">
+          <h2>An Introduction to the Haskell Type System<br>through the lens of the Expression Problem</h2>
+          <br>
+          <h5>or...</h5>
+          <br>
+          <h4>From Stringly to <b>Strongly</b> to <i>Strangely</i> Typed</h4>
+          <br>
+        </section>
+
+        <section>
+          <h2>Goals:</h2>
+          <br>
+          <ul>
+            <li>Understand the expression problem</li>
+            <li><i>Gain appreciation for Haskell's type system</i></li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>I'm an attorney, so... Disclaimers!</h3>
+          <br>
+          <ul>
+            <li class="fragment">I'm not Philip Wadler</li>
+            <li class="fragment">This is complex stuff</li>
+            <li class="fragment">but don't be afraid of Haskell</li>
+            <li class="fragment">If a term is unknown, ask!</li>
+        </section>
+
+        <section>
+          <h2>What is the Expression Problem?</h2>
+          <br>
+          <ol>
+            <li class="fragment">Extensibility of function</li>
+            <li class="fragment">Extensibility of data</li>
+            <li class="fragment">Static type safety</li>
+            <li class="fragment">Separate compilation</li>
+        </section>
+
+        <section>
+          <h2>Introducing Types in Haskell</h2>
+          <br>
+          <ul>
+            <li class="fragment">Type Synonyms:
+              <ul>
+                <li class="fragment"><pre><code class="haskell">type ResponseHandler = Handle -> ReaderT RequestEnv IO ()</code></pre></li>
+                <li class="fragment">No guarantees - just a nickname</li>
+              </ul>
+            </li>
+            <li class="fragment">Newtypes:
+              <ul>
+                <li class="fragment"><pre><code class="haskell">newtype Route = Route { fetchRoute :: String }</code></pre></li>
+                <li class="fragment">Always identical to wrapped type</li>
+                <li class="fragment">Typesafe!</li>
+                <li class="fragment">Great for typeclass instantiation</li>
+              </ul>
+            </li>
+            <li class="fragment">and the data keyword...</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Algebraic Data Types</h2>
+          <br>
+          <ul>
+            <li class="fragment">Types = sets of values</li>
+            <li class="fragment">Product Types:
+              <ul>
+                <li class="fragment">Composed of N typed fields</li>
+                <li class="fragment"><pre><code class="haskell">data TwoChars = TwoChars Char Char</code></pre></li>
+                <li class="fragment">128*128 possible values (pretend ASCII)
+              </ul>
+            </li>
+            <li class="fragment">Sum Types:
+              <ul>
+                <li class="fragment">Composed of N alternatives</li>
+                <li class="fragment"><pre><code class="haskell">data OneOrTwoChars = OneChar Char | TwoChars Char Char</code></pre></li>
+                <li class="fragment">128 + (128 * 128) possible values</li>
+              </ul>
+            </li>
+            <li class="fragment">Closed for extension :(</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Designing with Types</h2>
+          <br>
+          <ul>
+            <li class="fragment">Why bother encoding alternatives and relations?
+              <ul>
+                <li class="fragment">"Make Illegal States Unrepresentable" - Yaron Minsky</li>
+                <li class="fragment">Fewer logic errors Beyond the type boundary</li>
+              </ul>
+            </li>
+            <li class="fragment">How? ...</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Designing with Types - Heuristics</h2>
+          <br>
+          <ul>
+            <li class="fragment">Is there business logic surrounding my data that could be encoded with the type system?</li>
+              <ul>
+                <li class="fragment">Am I trying to represent data with variations that should be treated in aggregate?</li>
+                <ul>
+                  <li class="fragment">Use a sum type!</li>
+                  <li class="fragment">Let the type checker tell you if you're writing partial functions</li>
+                </ul>
+              </ul>
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Designing with Types - Heuristics</h2>
+          <br>
+          <ul>
+            <li>Is there business logic surrounding my data that could be encoded with the type system?</li>
+              <ul>
+                <li class="fragment">Do all the components of my data that are grouped together logically depend on one another?</li>
+                <ul>
+                  <li class="fragment">Extract independent subsets to separate product types.</li>
+                  <li class="fragment">Let the type checker tell you if you're failing to provide a complete set of data</li>
+                <ul>
+              </ul>
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Designing with Types - Heuristics</h2>
+          <br>
+          <ul>
+            <li>Is there business logic surrounding my data that could be encoded with the type system?</li>
+              <ul>
+                <li class="fragment">Are there constraints or validation logic that could be used to prevent bad data?</li>
+                <ul>
+                  <li class="fragment">Hide value constructors and export functions that perform these checks before returning values</li>
+                  <li class="fragment">"Smart Constructors" bridge the type boundary and provide runtime logic checks on dirty data</li>
+                </ul>
+              </ul>
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Designing with Types - Heuristics</h2>
+          <br>
+          <ul>
+            <li>Is there business logic surrounding my data that could be encoded with the type system?</li>
+              <ul>
+                <li class="fragment">Are there container types that can help me make my data more correct? Am I encoding logic in special values?</li>
+                <ul>
+                  <li class="fragment">Optionality - Use Maybe to indicate presence or absence rather than some special value</li>
+                  <li class="fragment">Error potential - Use Either to return a successful value or an error, rather than special values</li>
+                </ul>
+              </ul>
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>...and now some code</h3>
+          <!-- Now we look at Types.hs in both hthttpd-wrong and hthttpd, talking about the differences. -->
+        </section>
+
+        <section>
+          <h2>Functional Extensibility</h2>
+          <br>
+          <ul>
+            <li class="fragment">Every function extends the API of some type.</li>
+            <li class="fragment">What about handling multiple types?</li>
+              <ul>
+                <li class="fragment">Ad hoc polymorphism via typeclasses</li>
+                <li class="fragment">Creates sets of types based on shared functionality</li>
+                <li class="fragment">Similar to OO interfaces, and open for extension :)</li>
+                <li class="fragment">Our functions can now extend to new types</li>
+              </ul>
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Typeclasses</h2>
+          <br>
+          <pre><code class="haskell">
+            data Language = PHP | Elixir
+
+            class Printable a where
+              toConsole :: a -> IO ()
+
+            -- free to create more instances later
+            instance Printable Language where
+              toConsole PHP = putStrLn "Ewwwww...."
+              toConsole Elixir = putStrLn "Much better choice!"
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Data Extensibility</h2>
+          <br>
+          <ul>
+            <li class="fragment">Sum types are closed after definition :(</li>
+            <li class="fragment">Typeclasses are not :)</li>
+            <li class="fragment">Typeclasses don't require bodies...</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>A solution to the XProblem</h2>
+          <br>
+          <ul>
+            <li class="fragment">Fake sum types via typeclasses</li>
+            <li class="fragment">Each operation on the type is another typeclass</li>
+            <ul><li class="fragment">Unusable otherwise... fake sum type has no operations</li></ul>
+            <li class="fragment">Code!</li>
+            <!-- Examine naive.hs in this repo -->
+          </ul>
+        </section>
+
+        <section>
+          <h1>Crap!</h1>
+        </section>
+
+        <section>
+          <h2>Damned Type Boundary!</h2>
+          <br>
+          <ul>
+            <li class="fragment">Can't return an instance of our fake sum type!</li>
+            <li class="fragment">Haskell defaults to universal quantification of type variables</li>
+            <li class="fragment">Solution is Existential Types, which obviously do away with that</li>
+            <li class="fragment">Code!</li>
+            <!-- Examine convoluted.hs in this repo -->
+        </section>
+
+        <section>
+          <h2>Links</h2>
+          <br>
+          <ul>
+            <li><a href="https://blogs.janestreet.com/effective-ml-video/">Yaron Minsky Talk (18 min mark)</a></li>
+            <li><a href="http://fsharpforfunandprofit.com/series/designing-with-types.html">Designing With Types in F#</a></li>
+            <li><a href="http://userpages.uni-koblenz.de/~laemmel/TheEagle/resources/pdf/xproblem1.pdf">Ralf Lämmel's great slides on the EP</a></li>
+            <li><a href="https://www.cse.unsw.edu.au/~chak/papers/exp-problem.pdf">A true solution to the EP in Haskell</a></li>
+            <li><a href="http://www.reddit.com/r/haskell/comments/2wsx6n/instance_of_typeclass_as_return_value/">On universal quantification relating to type variables</a></li>
+            <li><a href="http://stackoverflow.com/questions/22133584/returning-an-instance-of-a-class-in-a-haskell-function?lq=1">More on that :)</a></li>
+            <li><a href="http://stackoverflow.com/questions/10811657/why-is-function-definition-for-all-types-at-once-not-allowed-in-haskell">On type erasure</a></li>
+          </ul>
+        </section>
+
+        <section>
+          <h1>Thanks!</h1>
+          <br>
+          <h5>alex.westholm@thirdreef.co</h5>
+        </section>
+      </div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+
+			// Full list of configuration options available at:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+				// Optional reveal.js plugins
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true },
+					{ src: 'plugin/notes/notes.js', async: true }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
